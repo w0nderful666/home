@@ -606,13 +606,24 @@ function animateRing() {
 }
 animateRing();
 
+function isInHero() {
+  const heroRect = hero.getBoundingClientRect();
+  return heroRect.bottom > 0;
+}
+
 window.addEventListener('mousemove', (e) => {
   targetX = e.clientX;
   targetY = e.clientY;
+  if (!isInHero()) { ring.style.opacity = '0'; return; }
   ring.style.opacity = '1';
   updateRingState(document.elementFromPoint(e.clientX, e.clientY));
 });
 window.addEventListener('mouseleave', () => { ring.style.opacity = '0'; });
+
+document.addEventListener('scroll', () => {
+  if (!isInHero()) ring.style.opacity = '0';
+  else ring.style.opacity = '1';
+});
 
 document.addEventListener('mouseover', (e) => {
   updateRingState(e.target);
