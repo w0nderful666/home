@@ -1,22 +1,19 @@
-# w0nderful / home
+# 🏠 w0nderful / home
 
-A showcase page inspired by Xiaomi MiMo 100T — featuring a real-time canvas glitch effect with animated character grids, smooth cursor interactions, and a minimal dark theme.
+[**中文**](README.zh-CN.md)
+
+A showcase page inspired by the Xiaomi MiMo 100T campaign — real-time canvas glitch effect with animated character grids, smooth cursor interactions, and a minimal dark theme.
 
 > **⚠️ Disclaimer**
-> This project is created **for learning and educational purposes only**. The visual effect is inspired by the Xiaomi MiMo 100T campaign page (`100t.xiaomimimo.com`). All code is independently written, no assets or code from the original site are used. Xiaomi MiMo and related trademarks belong to their respective owners. If you are a rights holder and believe this infringes your rights, please open an issue and we will address it promptly.
+> This project is created **for learning and educational purposes only**. The visual effect is inspired by the Xiaomi MiMo 100T campaign page (`100t.xiaomimimo.com`). All code is independently written; no assets or code from the original site are used. Xiaomi MiMo and related trademarks belong to their respective owners. If you believe this infringes your rights, please open an issue and we will address it promptly.
 
-## Features
-
-- **Canvas 2D Glitch Grid** — Dense character grid with random mutation + smooth color transitions
-- **Ring Light Effect** — CSS radial gradient overlays create a circular spotlight on the canvas
-- **Cursor Ring** — Mouse-following ring with lerp smoothing, shrinks on interactive elements
-- **Typewriter Text** — Cycling type-in/type-out animation
-- **Full-screen Hero** + scroll-down to README section
-- **Zero dependencies** — No frameworks, no libraries, no build step
+---
 
 ## Demo
 
 https://w0nderful666.github.io/home
+
+---
 
 ## Quick Start
 
@@ -26,80 +23,176 @@ cd home
 open index.html
 ```
 
-Or just open `index.html` in any browser — it's a single file.
+Or just open `index.html` in any browser — it's a single file with zero dependencies.
+
+---
 
 ## How It Works
 
-### Canvas Glitch Grid
+### 1. Canvas Glitch Grid
 
-A dense grid of characters (letters, numbers, symbols) is drawn on a 2D canvas. Every 50ms, ~5% of them randomly change to a new character + new color, with smooth color interpolation over ~20 frames. This creates the flickering "digital rain" effect.
+A dense grid of characters is drawn onto an HTML5 `<canvas>` element using the Canvas 2D API.
 
 ```
-Grid: 10px × 20px cells, 16px monospace font
-Mutation: 50ms interval, 5% of cells per tick
-Colors: #53514D, #998f84 with linear interpolation
+Grid spacing:   10px horizontally, 20px vertically
+Font:           16px monospace
+Character set:  A-Z, 0-9, !@#$&*()-_+=/[]{};:<>., etc.
 ```
 
-### Ring Light Effect
+**Rendering loop (`requestAnimationFrame`):**
 
-Two CSS radial gradient overlays create the circular spotlight:
-- `.vignette-center` — dark center → transparent at 60% radius
-- `.vignette-outer` — transparent at 50% → dark edges
+- Every **50ms**, ~5% of the cells are randomly selected to mutate.
+- Each mutated cell gets a **new random character** and a **new target color**.
+- The color transitions smoothly using **linear interpolation (lerp)**: `current = lerp(oldColor, targetColor, progress)`, where `progress += 0.05` each frame. The fade takes ~20 frames (~330ms).
+- Only characters actively fading trigger a redraw, minimizing CPU usage.
 
-The visible ring is the gap between these two gradients.
+**Why this creates the flickering effect:**  
+Because mutations happen at staggered times for different cells, and each color fade is asynchronous, the grid appears to shimmer organically — like digital static or a glitch display.
 
-### Cursor Ring
+### 2. Ring Light Effect
 
-A `position: fixed` div follows the mouse with lerp smoothing (factor 0.18). Uses `elementFromPoint` to detect interactive elements; when hovering a button/link, the ring shrinks to 0 with CSS transition. `mix-blend-mode: difference` gives the inverted highlight effect.
+The ring spotlight is achieved entirely with **CSS radial gradients**, no JavaScript involved:
+
+```css
+/* Darkens center — creates the hole in the ring */
+.vignette-center {
+  background: radial-gradient(circle, rgba(0,0,0,0.7) 0%, transparent 60%);
+}
+
+/* Darkens edges — creates the outer boundary of the ring */
+.vignette-outer {
+  background: radial-gradient(circle, transparent 50%, #000 100%);
+}
+```
+
+The visible ring is the gap between the 60% center gradient and the 50% outer gradient. By adjusting these percentages, you can change the ring's radius and width.
+
+### 3. Cursor Ring
+
+A `<div>` follows the mouse cursor:
+
+| Property | Value |
+|----------|-------|
+| Position | `fixed` |
+| Size | 200×200px (shrinks to 0 on interactive elements) |
+| Color | `#f6f3ec` |
+| Blend mode | `mix-blend-mode: difference` |
+| Smoothing | Lerp factor 0.18 |
+
+**How it detects buttons:**  
+On each `mousemove`, `document.elementFromPoint(e.clientX, e.clientY)` checks what element is under the cursor. If it's a `<button>`, `<a>`, `<input>`, etc. (or a child of one), the ring adds the `.hidden` class, triggering a CSS transition that shrinks it to 0×0 and fades it out.
+
+**Lerp smoothing formula:**
+```
+actualX += (targetX - actualX) * 0.18;
+actualY += (targetY - actualY) * 0.18;
+```
+
+The 0.18 factor creates a subtle lag that feels natural and polished.
+
+### 4. Typewriter Text
+
+A simple recursive `setTimeout` cycle types characters one by one, then deletes them after a pause, cycling through a list of phrases.
+
+---
+
+## Customization Guide
+
+### Change the title / name
+
+Edit the HTML inside `.content`:
+
+```html
+<p class="name-display">Your Name</p>
+<p class="sub-name">your tagline here</p>
+```
+
+### Change the typewriter phrases
+
+```js
+const phrases = ['your title', 'another phrase', 'something else'];
+```
+
+### Change the button link
+
+```html
+<a class="btn" href="https://your-site.com" target="_blank">
+  <span class="btn-text">Your Button Text</span>
+</a>
+```
+
+### Change the header link
+
+```html
+<a class="header-link" href="https://your-site.com">Your Link</a>
+```
+
+### Change the glitch character set
+
+```js
+const SYMBOLS = 'YOUR_CUSTOM_CHARS_HERE';
+```
+
+### Change the ring spotlight size
+
+In CSS, adjust the gradient percentages:
+
+```css
+.vignette-center {
+  background: radial-gradient(circle, rgba(0,0,0,0.7) 0%, transparent 60%);
+  /*    ↑ increase = smaller dark center, wider ring  */
+  /*    ↓ decrease = larger dark center, narrower ring  */
+}
+.vignette-outer {
+  background: radial-gradient(circle, transparent 50%, #000 100%);
+  /*    ↑ increase = ring moves outward               */
+  /*    ↓ decrease = ring moves inward                 */
+}
+```
+
+### Change grid density / animation speed
+
+```js
+const CELL_W = 10;     // horizontal spacing (px) — smaller = more columns
+const CELL_H = 20;     // vertical spacing (px)   — smaller = more rows
+const UPDATE_MS = 50;  // mutation interval (ms)  — smaller = faster flicker
+```
+
+### Change colors
+
+```js
+const COLORS = ['#color1', '#color2', '#color3'];
+```
+
+---
 
 ## Embed into Your Site
 
-Three options:
-
-**Option A: Iframe embed (easiest)**
+**Option A: Iframe (easiest)**
 ```html
 <iframe src="https://w0nderful666.github.io/home"
   style="width:100%;height:100vh;border:0;border-radius:12px;"></iframe>
 ```
 
-**Option B: Extract just the hero background**
+**Option B: Extract components**  
 Copy the `<canvas>` + `<script>` block and the `.vignette-*` / `.overlay` divs into your own hero section.
 
-**Option C: Single file**
-Download `index.html`, edit the content to your liking, and deploy anywhere.
+**Option C: Single file deploy**  
+Download `index.html`, customize, and upload to any static host (GitHub Pages, Vercel, Netlify, etc.).
 
-## Customization
-
-Key parameters you can tweak in `<script>`:
-
-```js
-// Character set
-const SYMBOLS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$&*...';
-
-// Grid density & speed
-const CELL_W = 10, CELL_H = 20;   // pixels per cell
-const UPDATE_MS = 50;              // ms between mutations
-
-// Color palette
-const COLORS = ['#53514D', '#53514D', '#998f84'];
-```
-
-And the ring light effect in CSS:
-
-```css
-.vignette-outer { background: radial-gradient(circle, transparent 50%, #000 100%); }
-.vignette-center { background: radial-gradient(circle, rgba(0,0,0,0.7) 0%, transparent 60%); }
-```
+---
 
 ## Tech Stack
 
-- Vanilla JavaScript (Canvas 2D API)
-- CSS3 (radial gradients, mix-blend-mode, transitions, keyframes)
-- **Zero dependencies** — no frameworks, no libraries, no build step
+| Layer | Technology |
+|-------|-----------|
+| Rendering | Canvas 2D API |
+| Effects | CSS radial gradients, mix-blend-mode |
+| Animation | requestAnimationFrame, CSS transitions |
+| Mouse | elementFromPoint, lerp interpolation |
+| Dependencies | **Zero** |
 
-## Browser Support
-
-Chrome, Firefox, Safari, Edge — any modern browser with Canvas 2D support.
+---
 
 ## License
 
