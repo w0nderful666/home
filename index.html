@@ -600,7 +600,7 @@ function updateRingState(el) {
 function animateRing() {
   ringX += (targetX - ringX) * 0.18;
   ringY += (targetY - ringY) * 0.18;
-  ring.style.transform = `translate(${ringX - 100}px, ${ringY - 100}px)`;
+  ring.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%)`;
   requestAnimationFrame(animateRing);
 }
 animateRing();
