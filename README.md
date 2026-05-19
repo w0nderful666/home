@@ -2,7 +2,11 @@
 
 [**中文**](README.zh-CN.md)
 
+> 全屏 Canvas 背景动画 · 故障字符网格特效 · 鼠标跟随圆环 · 零依赖开源个人主页项目
+
 A showcase page inspired by the Xiaomi MiMo 100T campaign — real-time canvas glitch effect with animated character grids, smooth cursor interactions, and a minimal dark theme.
+
+**中文关键词：** `博客背景动画` `个人主页` `全屏动画背景` `Canvas特效` `Canvas背景` `开源项目` `故障字符网格` `鼠标跟随圆环` `打字机效果` `零依赖` `前端动画`
 
 > **⚠️ Disclaimer**
 > This project is created **for learning and educational purposes only**. The visual effect is inspired by the Xiaomi MiMo 100T campaign page (`100t.xiaomimimo.com`). All code is independently written; no assets or code from the original site are used. Xiaomi MiMo and related trademarks belong to their respective owners. If you believe this infringes your rights, please open an issue and we will address it promptly.
@@ -191,6 +195,12 @@ Download `index.html`, customize, and upload to any static host (GitHub Pages, V
 | Animation | requestAnimationFrame, CSS transitions |
 | Mouse | elementFromPoint, lerp interpolation |
 | Dependencies | **Zero** |
+
+---
+
+## Keywords / 中文搜索关键词
+
+`博客背景动画` `个人主页` `全屏动画背景` `Canvas特效` `Canvas背景` `开源项目` `前端动画` `故障字符网格` `鼠标跟随圆环` `打字机效果` `零依赖` `单文件部署` `个人网站` `背景特效` `暗黑风格`
 
 ---
 
