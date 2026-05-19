@@ -61,7 +61,7 @@ canvas {
   mix-blend-mode: difference;
   pointer-events: none;
   z-index: 9999;
-  transform: translate(-50%, -50%);
+  will-change: transform;
   transition: width 0.25s cubic-bezier(0.22,1,0.36,1),
               height 0.25s cubic-bezier(0.22,1,0.36,1),
               opacity 0.2s ease;
@@ -600,8 +600,7 @@ function updateRingState(el) {
 function animateRing() {
   ringX += (targetX - ringX) * 0.18;
   ringY += (targetY - ringY) * 0.18;
-  ring.style.left = ringX + 'px';
-  ring.style.top = ringY + 'px';
+  ring.style.transform = `translate(${ringX - 100}px, ${ringY - 100}px)`;
   requestAnimationFrame(animateRing);
 }
 animateRing();
@@ -612,9 +611,8 @@ function showRing(v) {
 }
 
 function isInHero() {
-  const el = document.elementFromPoint(targetX, targetY);
-  if (!el) return false;
-  return hero.contains(el);
+  const rect = hero.getBoundingClientRect();
+  return targetY >= rect.top && targetY <= rect.bottom;
 }
 
 window.addEventListener('mousemove', (e) => {
@@ -624,13 +622,17 @@ window.addEventListener('mousemove', (e) => {
   showRing(inHero);
   if (!inHero) return;
   updateRingState(document.elementFromPoint(e.clientX, e.clientY));
-});
-window.addEventListener('mouseleave', () => { showRing(false); });
+}, { passive: true });
+window.addEventListener('mouseleave', () => { showRing(false); }, { passive: true });
 
+let scrollTimer;
 document.addEventListener('scroll', () => {
-  const el = document.elementFromPoint(targetX, targetY);
-  showRing(!!el && hero.contains(el));
-});
+  clearTimeout(scrollTimer);
+  scrollTimer = setTimeout(() => {
+    const rect = hero.getBoundingClientRect();
+    showRing(targetY >= rect.top && targetY <= rect.bottom);
+  }, 50);
+}, { passive: true });
 
 document.addEventListener('mouseover', (e) => {
   updateRingState(e.target);
