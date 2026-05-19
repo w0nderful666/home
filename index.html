@@ -607,8 +607,9 @@ function animateRing() {
 animateRing();
 
 function isInHero() {
-  const heroRect = hero.getBoundingClientRect();
-  return heroRect.bottom > 0;
+  const el = document.elementFromPoint(targetX, targetY);
+  if (!el) return false;
+  return hero.contains(el);
 }
 
 window.addEventListener('mousemove', (e) => {
@@ -621,7 +622,8 @@ window.addEventListener('mousemove', (e) => {
 window.addEventListener('mouseleave', () => { ring.style.opacity = '0'; });
 
 document.addEventListener('scroll', () => {
-  if (!isInHero()) ring.style.opacity = '0';
+  const el = document.elementFromPoint(targetX, targetY);
+  if (!el || !hero.contains(el)) ring.style.opacity = '0';
   else ring.style.opacity = '1';
 });
 
