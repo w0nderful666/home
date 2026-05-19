@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>w0nderful</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  overflow-x: hidden;
+  background: #000;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.hero {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #0d0d0d;
+}
+
+canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.vignette-outer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle, transparent 50%, #000 100%);
+  z-index: 2;
+}
+
+.vignette-center {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(0,0,0,0.7) 0%, transparent 60%);
+  z-index: 2;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: rgba(0,0,0,0.35);
+}
+
+.cursor-ring {
+  position: fixed;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: #f6f3ec;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.25s cubic-bezier(0.22,1,0.36,1),
+              height 0.25s cubic-bezier(0.22,1,0.36,1),
+              opacity 0.2s ease;
+  opacity: 0;
+}
+
+.cursor-ring.hidden {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  padding: 0 30px;
+  font-family: 'Menlo', 'Monaco', monospace;
+  color: #fff;
+  background: transparent;
+  backdrop-filter: blur(2px);
+}
+
+.header-left {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.header-status {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 2.2px;
+  color: rgba(255,255,255,0.7);
+}
+
+.header-dot {
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+  animation: pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0.25; }
+}
+
+.header-right {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.header-link {
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.32px;
+  color: #fff;
+  text-decoration: none;
+  padding: 0 16px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,0.35);
+  transition: background 0.2s, color 0.2s;
+}
+
+.header-link:hover {
+  background: #fff;
+  color: #000;
+}
+
+.content {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 20px;
+  padding: 0 40px;
+  text-align: center;
+}
+
+.status-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.status-dot {
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+  opacity: 0.26;
+}
+.status-text {
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 11px;
+  color: #fff;
+  letter-spacing: 2.2px;
+}
+
+.title {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1.2;
+  background: linear-gradient(90deg, #7e8f9e, #b0beca 45%, #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cursor-blink {
+  display: inline;
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.label-text {
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 3.85px;
+}
+
+.name-display {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 64px;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: 4px;
+}
+
+.sub-name {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-style: italic;
+  color: #a8a49c;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(534px, 100%);
+  height: 55px;
+  padding: 0 20px;
+  color: #fff;
+  cursor: pointer;
+  background: rgba(246, 243, 236, 0.18);
+  backdrop-filter: blur(2.5px);
+  border: 1px solid rgba(255,255,255,0.6);
+  transition: background 0.15s;
+  text-decoration: none;
+}
+.btn:hover {
+  background: rgba(246, 243, 236, 0.28);
+}
+.btn-text {
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 12px;
+  letter-spacing: 2.16px;
+}
+
+.scroll-down {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  animation: bounce 2s ease-in-out infinite;
+  background: none;
+  border: none;
+  padding: 8px;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(8px); }
+}
+
+/* about section */
+.about {
+  min-height: 100vh;
+  background: #0d0d0d;
+  display: flex;
+  justify-content: center;
+  padding: 100px 40px 60px;
+}
+
+.about-content {
+  width: min(800px, 100%);
+  color: rgba(255,255,255,0.85);
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.about-content h1 {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 30px;
+  letter-spacing: -0.5px;
+}
+
+.about-content h2 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  margin: 30px 0 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.about-content p {
+  margin-bottom: 16px;
+  color: rgba(255,255,255,0.65);
+}
+
+.about-content code {
+  background: rgba(255,255,255,0.08);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #a5b4fc;
+}
+
+.about-content pre {
+  background: rgba(255,255,255,0.05);
+  padding: 16px 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 12px;
+  color: #e0e7ff;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.about-content a {
+  color: #818cf8;
+  text-decoration: underline;
+}
+
+.about-content ul {
+  padding-left: 20px;
+  margin-bottom: 16px;
+}
+
+.about-content li {
+  margin-bottom: 6px;
+  color: rgba(255,255,255,0.6);
+}
+
+.about-content .tag {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 10px;
+  border-radius: 3px;
+  margin-right: 6px;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+@media (max-width: 768px) {
+  .header { padding: 0 16px; }
+  .title { font-size: 28px; }
+  .name-display { font-size: 36px; letter-spacing: 2px; }
+  .about { padding: 80px 20px 40px; }
+}
+</style>
+</head>
+<body>
+<div class="hero" id="hero">
+  <canvas id="c"></canvas>
+  <div class="vignette-outer"></div>
+  <div class="vignette-center"></div>
+  <div class="overlay"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <div class="header">
+    <div class="header-left">
+      <a class="header-logo">w0nderful</a>
+      <div class="header-status">
+        <span class="header-dot"></span>
+        <span>Open Source</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <a class="header-link" href="https://github.com/w0nderful666" target="_blank">GitHub</a>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="status-bar">
+      <span class="status-dot"></span>
+      <span class="status-text">W0NDERFUL</span>
+    </div>
+    <p class="label-text">CREATOR</p>
+    <p class="name-display">w0nderful</p>
+    <p class="sub-name">full-stack developer / open source lover</p>
+    <h1 class="title">
+      <span class="typing-text"></span><span class="cursor-blink">_</span>
+    </h1>
+    <a class="btn" href="https://github.com/w0nderful666" target="_blank" rel="noopener noreferrer">
+      <span class="btn-text">GitHub Profile</span>
+      <span class="btn-arrow">
+        <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
+          <path d="M1.167 7.584V6.417h9.434L8.296 4.113l.825-.825L12.834 7l-3.713 3.713-.825-.825 2.304-2.304H1.167z" fill="currentColor"/>
+        </svg>
+      </span>
+    </a>
+  </div>
+
+  <button class="scroll-down" id="scrollBtn" aria-label="Scroll down">
+    <svg width="32" height="32" viewBox="0 0 16 16" fill="none">
+      <path d="M8.58319 2.16707L7.41658 2.16699V11.6006L5.11255 9.29661L4.2876 10.1216L7.99991 13.8339L11.7122 10.1216L10.8872 9.29661L8.58325 11.6007L8.58319 2.16707Z" fill="currentColor"/>
+    </svg>
+  </button>
+</div>
+
+<div class="about" id="about">
+  <div class="about-content">
+    <h1>w0nderful / home</h1>
+
+    <p>
+      A showcase page inspired by Xiaomi MiMo 100T — featuring a real-time canvas
+      glitch effect with animated character grids, smooth cursor interactions,
+      and a minimal dark theme. Zero dependencies, works in any browser.
+    </p>
+
+    <h2>Features</h2>
+    <p>
+      <span class="tag">Canvas 2D</span>
+      <span class="tag">Glitch Effect</span>
+      <span class="tag">Character Grid</span>
+      <span class="tag">Cursor Ring</span>
+      <span class="tag">Typewriter</span>
+      <span class="tag">Animated Background</span>
+    </p>
+
+    <pre>
+  ██╗    ██╗ ██████╗ ███╗   ██╗██████╗ ███████╗██████╗ ███████╗██╗   ██╗██╗
+  ██║    ██║██╔═══██╗████╗  ██║██╔══██╗██╔════╝██╔══██╗██╔════╝██║   ██║██║
+  ██║ █╗ ██║██║   ██║██╔██╗ ██║██║  ██║█████╗  ██████╔╝█████╗  ██║   ██║██║
+  ██║███╗██║██║   ██║██║╚██╗██║██║  ██║██╔══╝  ██╔══██╗██╔══╝  ██║   ██║██║
+  ╚███╔███╔╝╚██████╔╝██║ ╚████║██████╔╝██║     ██║  ██║███████╗╚██████╔╝██║
+   ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝ ╚═╝     ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝</pre>
+
+    <h2>Getting Started</h2>
+    <p>Clone the repo and open <code>index.html</code> in your browser:</p>
+    <pre>git clone https://github.com/w0nderful666/home.git
+cd home
+open index.html</pre>
+
+    <h2>License</h2>
+    <p>MIT &copy; 2026 <a href="https://github.com/w0nderful666" target="_blank">w0nderful</a></p>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const hero = document.getElementById('hero');
+const ring = document.getElementById('cursorRing');
+
+function resize() {
+  const rect = hero.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+
+const DPR = window.devicePixelRatio || 1;
+
+const SYMBOLS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$&*()-_+=/[]{};:<>.,0123456789';
+const COLORS = ['#53514D', '#53514D', '#998f84'];
+
+const CELL_W = 10, CELL_H = 20, FONT_SIZE = 16;
+const UPDATE_MS = 50;
+
+let cells = [];
+let fading = new Set();
+let cols = 0, rows = 0;
+let lastUpdate = 0;
+
+function hexToRgb(hex) {
+  const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(hex);
+  return m ? { r: parseInt(m[1],16), g: parseInt(m[2],16), b: parseInt(m[3],16) } : null;
+}
+
+function lerpColor(a, b, t) {
+  return `rgb(${Math.round(a.r+(b.r-a.r)*t)},${Math.round(a.g+(b.g-a.g)*t)},${Math.round(a.b+(b.b-a.b)*t)})`;
+}
+
+function initGrid() {
+  cols = Math.ceil((canvas.width / DPR) / CELL_W);
+  rows = Math.ceil((canvas.height / DPR) / CELL_H);
+  cells = [];
+  fading.clear();
+  for (let i = 0; i < cols * rows; i++) {
+    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    cells.push({
+      char: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+      color: color,
+      targetColor: COLORS[Math.floor(Math.random() * COLORS.length)],
+      progress: 1,
+    });
+  }
+}
+initGrid();
+
+function redraw() {
+  const w = canvas.width / DPR;
+  const h = canvas.height / DPR;
+  ctx.fillStyle = '#0d0d0d';
+  ctx.fillRect(0, 0, w, h);
+  ctx.font = `${FONT_SIZE}px "Menlo", "Monaco", monospace`;
+  ctx.textBaseline = 'top';
+  for (const [i, c] of cells.entries()) {
+    ctx.fillStyle = c.color;
+    ctx.fillText(c.char, (i % cols) * CELL_W, Math.floor(i / cols) * CELL_H);
+  }
+}
+redraw();
+
+function mutate() {
+  if (cells.length === 0) return;
+  const count = Math.max(1, Math.floor(cells.length * 0.05));
+  for (let i = 0; i < count; i++) {
+    const idx = Math.floor(Math.random() * cells.length);
+    const c = cells[idx];
+    c.char = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+    c.targetColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+    c.progress = 0;
+    fading.add(c);
+  }
+}
+
+function animate(now) {
+  let needsRedraw = false;
+
+  if (now - lastUpdate >= UPDATE_MS) {
+    lastUpdate = now;
+    mutate();
+    needsRedraw = true;
+  }
+
+  if (fading.size > 0) {
+    for (const c of fading) {
+      c.progress = Math.min(1, c.progress + 0.05);
+      const from = hexToRgb(c.color);
+      const to = hexToRgb(c.targetColor);
+      if (from && to) {
+        c.color = lerpColor(from, to, c.progress);
+      }
+      if (c.progress >= 1) fading.delete(c);
+    }
+    needsRedraw = true;
+  }
+
+  if (needsRedraw) redraw();
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    resize();
+    initGrid();
+    redraw();
+  }, 100);
+});
+
+// cursor ring
+let ringX = -200, ringY = -200;
+let targetX = -200, targetY = -200;
+let ringState = 'visible';
+
+function isInteractive(el) {
+  if (!el) return false;
+  const tag = el.tagName.toLowerCase();
+  if (tag === 'button' || tag === 'a' || tag === 'input' || tag === 'select' || tag === 'textarea') return true;
+  return el.closest('button, a, input, select, textarea') !== null;
+}
+
+function updateRingState(el) {
+  const next = isInteractive(el) ? 'hidden' : 'visible';
+  if (next !== ringState) {
+    ringState = next;
+    ring.classList.toggle('hidden', next === 'hidden');
+  }
+}
+
+function animateRing() {
+  ringX += (targetX - ringX) * 0.18;
+  ringY += (targetY - ringY) * 0.18;
+  ring.style.left = ringX + 'px';
+  ring.style.top = ringY + 'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+
+window.addEventListener('mousemove', (e) => {
+  targetX = e.clientX;
+  targetY = e.clientY;
+  ring.style.opacity = '1';
+  updateRingState(document.elementFromPoint(e.clientX, e.clientY));
+});
+window.addEventListener('mouseleave', () => { ring.style.opacity = '0'; });
+
+document.addEventListener('mouseover', (e) => {
+  updateRingState(e.target);
+});
+
+// scroll down
+document.getElementById('scrollBtn').addEventListener('click', () => {
+  document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
+});
+
+// typewriter
+const textEl = document.querySelector('.typing-text');
+const phrases = ['w0nderful', 'full-stack developer', 'open source lover'];
+let phraseIdx = 0, charIdx = 0, isDeleting = false;
+
+function typeEffect() {
+  const current = phrases[phraseIdx];
+  if (!isDeleting && charIdx <= current.length) {
+    textEl.textContent = current.slice(0, charIdx);
+    charIdx++;
+    setTimeout(typeEffect, 80 + Math.random() * 40);
+  } else if (isDeleting && charIdx >= 0) {
+    textEl.textContent = current.slice(0, charIdx);
+    charIdx--;
+    setTimeout(typeEffect, 30 + Math.random() * 20);
+  } else {
+    if (!isDeleting) {
+      setTimeout(() => { isDeleting = true; typeEffect(); }, 2500);
+    } else {
+      isDeleting = false;
+      phraseIdx = (phraseIdx + 1) % phrases.length;
+      setTimeout(typeEffect, 500);
+    }
+  }
+}
+typeEffect();
+</script>
+</body>
+</html>
