@@ -606,6 +606,11 @@ function animateRing() {
 }
 animateRing();
 
+function showRing(v) {
+  ring.style.opacity = v ? '1' : '0';
+  document.body.style.cursor = v ? 'none' : '';
+}
+
 function isInHero() {
   const el = document.elementFromPoint(targetX, targetY);
   if (!el) return false;
@@ -615,16 +620,16 @@ function isInHero() {
 window.addEventListener('mousemove', (e) => {
   targetX = e.clientX;
   targetY = e.clientY;
-  if (!isInHero()) { ring.style.opacity = '0'; return; }
-  ring.style.opacity = '1';
+  const inHero = isInHero();
+  showRing(inHero);
+  if (!inHero) return;
   updateRingState(document.elementFromPoint(e.clientX, e.clientY));
 });
-window.addEventListener('mouseleave', () => { ring.style.opacity = '0'; });
+window.addEventListener('mouseleave', () => { showRing(false); });
 
 document.addEventListener('scroll', () => {
   const el = document.elementFromPoint(targetX, targetY);
-  if (!el || !hero.contains(el)) ring.style.opacity = '0';
-  else ring.style.opacity = '1';
+  showRing(!!el && hero.contains(el));
 });
 
 document.addEventListener('mouseover', (e) => {
